@@ -3,10 +3,12 @@
 #include <esp32cam.h>
 
 #define flashLED 4 // Flash LED
-#define canalPWM 7   // PWM cannal available
+#define canalPWM 2 // available PWM chan 
 
-const char *WIFI_SSID = $WIFI_SSID;
-const char *WIFI_PASS = $WIFI_PASS;
+bool ledState = false;
+
+const char *WIFI_SSID = "GalaxyA53";
+const char *WIFI_PASS = "dkue5838";
 
 WebServer server(80);
 
@@ -34,6 +36,19 @@ void serveJpg()
 void serveLED(int duty)
 {
   ledcWrite(canalPWM, duty);
+  String msg = duty == 0 ? "LED OFF" : "LED ON";
+  Serial.println(msg);
+  server.send(200, "text/plain", msg);
+}
+
+void handleLED(){
+  if (ledState) {
+    ledState = false;
+    serveLED(0);
+  } else {
+    ledState = true;
+    serveLED(10);
+  }
 }
 
 void handleJpgLo()
@@ -78,8 +93,9 @@ void setup()
     bool ok = Camera.begin(cfg);
     Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
   }
-  ledcAttachPin(flashLED, 7);
-  ledcSetup(canalPWM, 5000, 12);
+  // pinMode(flashLED, OUTPUT);
+  ledcSetup(canalPWM, 5000, 8);
+  ledcAttachPin(flashLED, canalPWM);
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -96,6 +112,7 @@ void setup()
   server.on("/cam-lo.jpg", handleJpgLo);
   server.on("/cam-hi.jpg", handleJpgHi);
   server.on("/cam-mid.jpg", handleJpgMid);
+  server.on("/led", handleLED);
 
   server.begin();
 }
