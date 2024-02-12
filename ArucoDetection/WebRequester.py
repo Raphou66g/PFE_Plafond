@@ -11,6 +11,7 @@ class URLTYPE(Enum):
     URL_LO = "http://192.168.168.143/cam-lo.jpg"
     URL_MID = "http://192.168.168.143/cam-mid.jpg"
     URL_HI = "http://192.168.168.143/cam-hi.jpg"
+    URL_LIGHT = "http://192.168.168.143/led"
 
 
 def urlPicker(quality: str) -> str:
@@ -35,6 +36,8 @@ class WebRequester:
     def __init__(self, quality: str) -> None:
         self.url = urlPicker(quality)
         self.size = sizePicker(quality)
+        self.width = self.size[0]
+        self.height = self.size[1]
 
     def request(self) -> cv2.typing.MatLike:
         # Create a VideoCapture object & check if the IP camera stream is opened successfully
@@ -50,6 +53,10 @@ class WebRequester:
 
         # Decoding data
         return cv2.imdecode(imgnp, -1)
+    
+    def TurnOnLight(self):
+        ret = urllib.request.urlopen(URLTYPE.URL_LIGHT.value)
+        print(str(ret))
 
 
 def ShowRequest(img: cv2.typing.MatLike):
