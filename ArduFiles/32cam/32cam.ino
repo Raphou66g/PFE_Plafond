@@ -41,14 +41,18 @@ void serveLED(int duty)
   server.send(200, "text/plain", msg);
 }
 
-void handleLED(){
-  if (ledState) {
-    ledState = false;
-    serveLED(0);
-  } else {
-    ledState = true;
-    serveLED(10);
-  }
+void ledStatus(){
+  server.send(200, "text/plain", ledState ? "LED is ON" : "LED is OFF");
+}
+
+void ledOn(){
+  ledState = true;
+  serveLED(10);
+}
+
+void ledOff(){
+  ledState = false;
+  serveLED(0);
 }
 
 void handleJpgLo()
@@ -109,10 +113,12 @@ void setup()
   Serial.println("  /cam-hi.jpg");
   Serial.println("  /cam-mid.jpg");
 
-  server.on("/cam-lo.jpg", handleJpgLo);
-  server.on("/cam-hi.jpg", handleJpgHi);
-  server.on("/cam-mid.jpg", handleJpgMid);
-  server.on("/led", handleLED);
+  server.on("/cam/lo.jpg", handleJpgLo);
+  server.on("/cam/hi.jpg", handleJpgHi);
+  server.on("/cam/mid.jpg", handleJpgMid);
+  server.on("/led", ledStatus);
+  server.on("/led/on", ledOn);
+  server.on("/led/off", ledOff);
 
   server.begin();
 }
