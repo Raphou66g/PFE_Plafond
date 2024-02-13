@@ -8,10 +8,12 @@ DEBUG_CV2 = True
 
 
 class URLTYPE(Enum):
-    URL_LO = "http://192.168.168.143/cam-lo.jpg"
-    URL_MID = "http://192.168.168.143/cam-mid.jpg"
-    URL_HI = "http://192.168.168.143/cam-hi.jpg"
+    URL_LO = "http://192.168.168.143/cam/lo.jpg"
+    URL_MID = "http://192.168.168.143/cam/mid.jpg"
+    URL_HI = "http://192.168.168.143/cam/hi.jpg"
     URL_LIGHT = "http://192.168.168.143/led"
+    URL_LIGHT_ON = "http://192.168.168.143/led/on"
+    URL_LIGHT_OFF = "http://192.168.168.143/led/off"
 
 
 def urlPicker(quality: str) -> str:
@@ -55,7 +57,11 @@ class WebRequester:
         return cv2.imdecode(imgnp, -1)
     
     def TurnOnLight(self):
-        ret = urllib.request.urlopen(URLTYPE.URL_LIGHT.value)
+        ret = urllib.request.urlopen(URLTYPE.URL_LIGHT_ON.value).read().decode("utf8")
+        print(str(ret))
+
+    def TurnOffLight(self):
+        ret = urllib.request.urlopen(URLTYPE.URL_LIGHT_OFF.value).read().decode("utf8")
         print(str(ret))
 
 

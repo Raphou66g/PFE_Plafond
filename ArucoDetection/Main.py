@@ -26,12 +26,12 @@ import cv2.aruco as aruco
 import numpy as np
 import time
 
-import pyttsx3
-engine = pyttsx3.init()
+# import pyttsx3
+# engine = pyttsx3.init()
 
-engine.setProperty('rate', 150)
-voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id)
+# engine.setProperty('rate', 150)
+# voices = engine.getProperty('voices')
+# engine.setProperty('voice', voices[1].id)
 
 # engine.say("I will speak this text")
 # engine.runAndWait()
@@ -70,8 +70,8 @@ if __name__ == "__main__":
                 img = requester.request()
 
                 if not BrightnessControl(img):
-                    #requester.TurnOnLight()
-                    pass
+                    requester.TurnOnLight()
+                    # pass
 
                 if DEBUG_WEB:
                     ShowRequest(img)
