@@ -6,19 +6,22 @@ from enum import Enum
 
 class ArucoProcess:
 
-    def __init__(self, arucoSize: int, width: int, height: int) -> None:
+    def __init__(self, arucoType:int, arucoSize: int, width: int, height: int, id: int = 0) -> None:
         """Init ArucoProcess class
 
         Args:
+            arucoType (int): int x int type
             arucoSize (int): Real size in mm
             width (int): Width of the frame in pixel. e.g: 1280
             height (int): Height of the frame in pixel. e.g: 720
         """
+        self.arucoType = aruco.DICT_4X4_1000 if arucoType == 4 else aruco.DICT_5X5_1000 if arucoType == 5 else aruco.DICT_6X6_1000 if arucoType == 6 else aruco.DICT_7X7_1000
         self.arucoSize = arucoSize
-        self.arucoDict = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
+        self.arucoDict = aruco.getPredefinedDictionary(self.arucoType)
         self.arucoParams = aruco.DetectorParameters()
         self.width = width
         self.height = height
+        self.id = id
         self.frame: cv2.typing.MatLike = None
         self.dico = {}
 
@@ -79,7 +82,7 @@ class ArucoProcess:
                 Cy -= self.height // 2
                 self.dico[ids[j][0]] = (Cx, -Cy, actual_size)
 
-        print(self.dico.get(0) if len(self.dico) > 0 else {})
+        # print(self.dico.get(self.id) if self.id in self.dico.keys() else {})
 
     def lines(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
         """Draw HUD border lines
@@ -97,7 +100,7 @@ class ArucoProcess:
             self.TL,
             self.TR,
             coloration(
-                self.dico.get(0)[1] if not self.dico.get(0) == None else -999, True
+                self.dico.get(self.id)[1] if not self.dico.get(self.id) == None else -999, True
             ),
             thick,
         )
@@ -107,7 +110,7 @@ class ArucoProcess:
             self.BL,
             self.BR,
             coloration(
-                self.dico.get(0)[1] if not self.dico.get(0) == None else 999, False
+                self.dico.get(self.id)[1] if not self.dico.get(self.id) == None else 999, False
             ),
             thick,
         )
@@ -117,7 +120,7 @@ class ArucoProcess:
             self.TL,
             self.BL,
             coloration(
-                self.dico.get(0)[0] if not self.dico.get(0) == None else 999, False
+                self.dico.get(self.id)[0] if not self.dico.get(self.id) == None else 999, False
             ),
             thick,
         )
@@ -127,7 +130,7 @@ class ArucoProcess:
             self.TR,
             self.BR,
             coloration(
-                self.dico.get(0)[0] if not self.dico.get(0) == None else -999, True
+                self.dico.get(self.id)[0] if not self.dico.get(self.id) == None else -999, True
             ),
             thick,
         )

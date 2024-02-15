@@ -1,4 +1,5 @@
 opencv-python
 numpy
 pyttsx3
+pyaudio
 pyparrot

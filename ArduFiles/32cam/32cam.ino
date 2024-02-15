@@ -109,13 +109,13 @@ void setup()
   }
   Serial.print("http://");
   Serial.println(WiFi.localIP());
-  Serial.println("  /cam-lo.jpg");
-  Serial.println("  /cam-hi.jpg");
-  Serial.println("  /cam-mid.jpg");
+  Serial.println("  /lo.jpg");
+  Serial.println("  /hi.jpg");
+  Serial.println("  /mid.jpg");
 
-  server.on("/cam/lo.jpg", handleJpgLo);
-  server.on("/cam/hi.jpg", handleJpgHi);
-  server.on("/cam/mid.jpg", handleJpgMid);
+  server.on("/lo.jpg", handleJpgLo);
+  server.on("/hi.jpg", handleJpgHi);
+  server.on("/mid.jpg", handleJpgMid);
   server.on("/led", ledStatus);
   server.on("/led/on", ledOn);
   server.on("/led/off", ledOff);
