@@ -52,6 +52,9 @@ class ArucoProcess:
             self.grayOut(), self.arucoDict, parameters=self.arucoParams
         )
         return corners, ids, aruco.drawDetectedMarkers(self.frame, corners, ids)
+    
+    def getPos(self):
+        pass
 
     def getArucos(self, frame: cv2.typing.MatLike) -> None:
         """Retreive ArUcos and data on them and save it into self.dico
@@ -59,12 +62,16 @@ class ArucoProcess:
         Args:
             frame (cv2.typing.MatLike): Frame from the cam
         """
+
+
         self.frame = frame
         aruco_perimeter = []
         pixel_cm_ratio = []
         actual_size = []
 
         corners, ids, _ = self.detector()
+        #TODO: ROTATE IMAGE TO MATCH THE ARUCO DIRECTION
+
 
         self.dico = {}
         if ids is not None:
@@ -158,7 +165,7 @@ class ArucoProcess:
 
     def showArucos(self):
         """Display the captured frame with ArUco marked"""
-        c, _, frame = self.detector()
+        _, _, frame = self.detector()
 
         self.hud(frame)
 

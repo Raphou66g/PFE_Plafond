@@ -17,6 +17,10 @@ def install():
         ]
     )
 
+from inspect import getsourcefile
+from os.path import abspath
+print(abspath(getsourcefile(lambda:0)))
+
 
 # Uncomment to install requirements
 # install()
@@ -44,6 +48,7 @@ def tell(msg: str) -> None:
 
 from ArucoProcess import ArucoProcess
 from WebRequester import WebRequester, ShowRequest
+from Calibration import calibrate
 
 SAVED = time.time()
 
@@ -78,6 +83,7 @@ if __name__ == "__main__":
         print(f"Invalid argument : {sys.argv[4]}. Must be > 0")
         print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
     else:
+        mtx = calibrate(False)
         while True:
             try:
                 requester: WebRequester = WebRequester(sys.argv[1])
@@ -108,10 +114,10 @@ if __name__ == "__main__":
                 print(cx, cy, dist)
 
                 if(abs(cx) > 20):
-                    tell("Left") if cx < 0 else tell("Right")
+                    tell("Left") if cx > 0 else tell("Right")
 
                 if(abs(cy) > 20):
-                    tell("Back") if cy < 0 else tell("Front")
+                    tell("Back") if cy > 0 else tell("Front")
 
                 if DEBUG_WEB or DEBUG_ARUCO:
                     key = cv2.waitKey(5)
