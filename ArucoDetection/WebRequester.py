@@ -59,11 +59,11 @@ class WebRequester:
     
     def TurnOnLight(self):
         ret = urllib.request.urlopen(URLTYPE.URL_LIGHT_ON.value).read().decode("utf8")
-        print(str(ret))
+        # print(str(ret))
 
     def TurnOffLight(self):
         ret = urllib.request.urlopen(URLTYPE.URL_LIGHT_OFF.value).read().decode("utf8")
-        print(str(ret))
+        # print(str(ret))
 
 
 def ShowRequest(img: cv2.typing.MatLike):

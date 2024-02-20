@@ -1,5 +1,8 @@
 opencv-python
+opencv-contrib-python
 numpy
 pyttsx3
 pyaudio
 pyparrot
+pillow
+zeroconf

@@ -10,7 +10,7 @@ from inspect import getsourcefile
 from os.path import abspath
 print(abspath(getsourcefile(lambda:0)))
 
-def calibrate(display:bool):
+def calibrate(display:bool) -> tuple[cv2.typing.MatLike, cv2.typing.MatLike]:
     # Defining the dimensions of checkerboard
     CHECKERBOARD = (6, 9)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)

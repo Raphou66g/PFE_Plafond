@@ -17,9 +17,11 @@ def install():
         ]
     )
 
+
 from inspect import getsourcefile
 from os.path import abspath
-print(abspath(getsourcefile(lambda:0)))
+
+print(abspath(getsourcefile(lambda: 0)))
 
 
 # Uncomment to install requirements
@@ -51,7 +53,7 @@ from WebRequester import WebRequester, ShowRequest
 from Calibration import calibrate
 
 SAVED = time.time()
-
+LED = False
 
 def BrightnessControl(image) -> bool:
     global SAVED
@@ -83,11 +85,14 @@ if __name__ == "__main__":
         print(f"Invalid argument : {sys.argv[4]}. Must be > 0")
         print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
     else:
-        mtx = calibrate(False)
+        camera_matrix, camera_distortion = calibrate(False)
+        prev = 999
         while True:
             try:
                 requester: WebRequester = WebRequester(sys.argv[1])
                 processor: ArucoProcess = ArucoProcess(
+                    camera_matrix,
+                    camera_distortion,
                     int(sys.argv[2]),
                     int(sys.argv[3]),
                     requester.width,
@@ -97,8 +102,9 @@ if __name__ == "__main__":
 
                 img = requester.request()
 
-                if not BrightnessControl(img):
+                if not BrightnessControl(img) and not LED:
                     requester.TurnOnLight()
+                    LED = True
                     # pass
 
                 if DEBUG_WEB:
@@ -110,18 +116,33 @@ if __name__ == "__main__":
                     processor.showArucos()
 
                 dic = processor.dico.get(processor.id)
-                cx, cy, dist = dic if not dic == None else (0,0,0)
-                print(cx, cy, dist)
+                cx, cy, rotZ, dist = dic if not dic == None else (0, 0, 0, 0)
+                prev = (cx, cy, rotZ, dist) if dist != 0 else prev
 
-                if(abs(cx) > 20):
-                    tell("Left") if cx > 0 else tell("Right")
+                print("\n")
+                print(prev)
+                if abs(rotZ) > 5:
+                    # tell("Rotate Left") if rotZ < 0 else tell("Rotate Right")
+                    print("Rotate Left") if rotZ < 0 else print("Rotate Right")
+                elif abs(cx) > 20 or abs(cy) > 20:
+                    if abs(cx) > 20:
+                        # tell("Left") if cx > 0 else tell("Right")
+                        print("Left") if cx > 0 else print("Right")
 
-                if(abs(cy) > 20):
-                    tell("Back") if cy > 0 else tell("Front")
+                    if abs(cy) > 20:
+                        # tell("Back") if cy > 0 else tell("Front")
+                        print("Back") if cy > 0 else print("Front")
+                elif not dic == None:
+                        # tell("Up")
+                        print("Up")
+                else:
+                    # tell("Hold")
+                    print("Hold")
 
                 if DEBUG_WEB or DEBUG_ARUCO:
                     key = cv2.waitKey(5)
                     if key == ord("q"):
+                        requester.TurnOffLight()
                         break
 
             except KeyboardInterrupt:
