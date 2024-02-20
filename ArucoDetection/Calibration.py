@@ -6,7 +6,11 @@ import sys
 from enum import Enum
 from WebRequester import WebRequester
 
-def process():
+from inspect import getsourcefile
+from os.path import abspath
+print(abspath(getsourcefile(lambda:0)))
+
+def calibrate(display:bool):
     # Defining the dimensions of checkerboard
     CHECKERBOARD = (6, 9)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -23,7 +27,7 @@ def process():
     prev_img_shape = None
 
     # Extracting path of individual image stored in a given directory
-    images = glob.glob("./Images/*.jpg")
+    images = glob.glob("**/Capture_*.jpg", recursive=True)
     for fname in images:
         img = cv2.imread(fname)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -49,13 +53,14 @@ def process():
 
             imgpoints.append(corners2)
 
+        if display:
             # Draw and display the corners
             img = cv2.drawChessboardCorners(img, CHECKERBOARD, corners2, ret)
+            cv2.imshow("img", img)
+            cv2.waitKey(0)
 
-        cv2.imshow("img", img)
-        cv2.waitKey(0)
-
-    cv2.destroyAllWindows()
+    if display:
+        cv2.destroyAllWindows()
 
     # h, w = img.shape[:2]
 
@@ -69,14 +74,18 @@ def process():
         objpoints, imgpoints, gray.shape[::-1], None, None
     )
 
-    print("\nCamera matrix :")
-    print(mtx)
-    print("\ndist :")
-    print(dist)
-    print("\nrvecs :")
-    print(rvecs)
-    print("\ntvecs :")
-    print(tvecs)
+    if display:
+        print("\nError in projection : ", ret) 
+        print("\nCamera matrix :")
+        print(mtx)
+        print("\ndist :")
+        print(dist)
+        print("\nrvecs :")
+        print(rvecs)
+        print("\ntvecs :")
+        print(tvecs)
+    
+    return mtx, dist
 
 
 class CALIBRATION_MODE(Enum):
@@ -98,14 +107,10 @@ if __name__ == "__main__":
     if len(sys.argv) <= 1 or sys.argv[1].lower() not in ["capture", "process"]:
         print("python Calibration.py (capture|process)")
     else:
-        match (sys.argv[1].lower()):
-            case "capture":
-                mode = CALIBRATION_MODE.CAPTURE
-            case "process":
-                mode = CALIBRATION_MODE.PROCESS
+        mode = CALIBRATION_MODE.CAPTURE if sys.argv[1].lower() == "capture" else CALIBRATION_MODE.PROCESS
 
     if mode == CALIBRATION_MODE.CAPTURE:
-        requester = WebRequester("mid")
+        requester = WebRequester("lo")
         num = 1
         while True:
             im = requester.request()
@@ -114,9 +119,9 @@ if __name__ == "__main__":
             if key == ord("q"):
                 break
             elif key == ord("s"):
-                name = f"./Images/{capName(num)}.jpg"
+                name = f"**/Images/{capName(num)}.jpg"
                 cv2.imwrite(name, im)
                 num += 1
         cv2.destroyAllWindows()
     elif mode == CALIBRATION_MODE.PROCESS:
-        process()
+        calibrate(True)

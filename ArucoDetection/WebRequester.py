@@ -6,14 +6,15 @@ from enum import Enum
 
 DEBUG_CV2 = True
 
+IP = "192.168.145.235"
 
 class URLTYPE(Enum):
-    URL_LO = "http://192.168.168.143/lo.jpg"
-    URL_MID = "http://192.168.168.143/mid.jpg"
-    URL_HI = "http://192.168.168.143/hi.jpg"
-    URL_LIGHT = "http://192.168.168.143/led"
-    URL_LIGHT_ON = "http://192.168.168.143/led/on"
-    URL_LIGHT_OFF = "http://192.168.168.143/led/off"
+    URL_LO = f"http://{IP}/lo.jpg"
+    URL_MID = f"http://{IP}/mid.jpg"
+    URL_HI = f"http://{IP}/hi.jpg"
+    URL_LIGHT = f"http://{IP}/led"
+    URL_LIGHT_ON = f"http://{IP}/led/on"
+    URL_LIGHT_OFF = f"http://{IP}/led/off"
 
 
 def urlPicker(quality: str) -> str:
