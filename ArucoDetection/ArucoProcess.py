@@ -1,21 +1,44 @@
 import typing as _typing
 import cv2
 from cv2 import aruco
-from enum import Enum
+import numpy as np
+import math
 
 
 class ArucoProcess:
 
-    def __init__(self, arucoType:int, arucoSize: int, width: int, height: int, id: int = 0) -> None:
+    def __init__(
+        self,
+        matrix: cv2.typing.MatLike,
+        distortion: cv2.typing.MatLike,
+        arucoType: int,
+        arucoSize: int,
+        width: int,
+        height: int,
+        id: int = 0,
+    ) -> None:
         """Init ArucoProcess class
 
         Args:
+            matrix (cv2.typing.MatLike): Camera matrix retrieve by the calibration
+            distortion (cv2.typing.MatLike): Camera distortion retrieve by the calibration
             arucoType (int): int x int type
             arucoSize (int): Real size in mm
             width (int): Width of the frame in pixel. e.g: 1280
             height (int): Height of the frame in pixel. e.g: 720
+            id (int, optional): ID of the searched ArUco. Defaults to 0.
         """
-        self.arucoType = aruco.DICT_4X4_1000 if arucoType == 4 else aruco.DICT_5X5_1000 if arucoType == 5 else aruco.DICT_6X6_1000 if arucoType == 6 else aruco.DICT_7X7_1000
+        self.matrix = matrix
+        self.distortion = distortion
+        self.arucoType = (
+            aruco.DICT_4X4_1000
+            if arucoType == 4
+            else (
+                aruco.DICT_5X5_1000
+                if arucoType == 5
+                else aruco.DICT_6X6_1000 if arucoType == 6 else aruco.DICT_7X7_1000
+            )
+        )
         self.arucoSize = arucoSize
         self.arucoDict = aruco.getPredefinedDictionary(self.arucoType)
         self.arucoParams = aruco.DetectorParameters()
@@ -24,6 +47,7 @@ class ArucoProcess:
         self.id = id
         self.frame: cv2.typing.MatLike = None
         self.dico = {}
+        self.rotaZion = 0
 
         self.TL = (1, 1)
         self.TR = (self.width - 1, 1)
@@ -52,9 +76,26 @@ class ArucoProcess:
             self.grayOut(), self.arucoDict, parameters=self.arucoParams
         )
         return corners, ids, aruco.drawDetectedMarkers(self.frame, corners, ids)
-    
-    def getPos(self):
-        pass
+
+    def getPos(self, frame, corners):
+        # --- 180 deg rotation matrix around the x axis
+        R_flip = np.zeros((3, 3), dtype=np.float32)
+        R_flip[0, 0] = 1.0
+        R_flip[1, 1] = -1.0
+        R_flip[2, 2] = -1.0
+
+        ret = aruco.estimatePoseSingleMarkers(
+            corners, self.arucoSize / 10, self.matrix, self.distortion
+        )
+        rvec, tvec = ret[0][0, 0, :], ret[1][0, 0, :]
+        cv2.drawFrameAxes(frame, self.matrix, self.distortion, rvec, tvec, 1)
+
+        R_ct = np.matrix(cv2.Rodrigues(rvec)[0])
+        R_tc = R_ct.T
+        roll_marker, pitch_marker, yaw_marker = rotationMatrixToEulerAngles(
+            R_flip * R_tc
+        )
+        self.rotaZion = math.degrees(yaw_marker)
 
     def getArucos(self, frame: cv2.typing.MatLike) -> None:
         """Retreive ArUcos and data on them and save it into self.dico
@@ -62,16 +103,13 @@ class ArucoProcess:
         Args:
             frame (cv2.typing.MatLike): Frame from the cam
         """
-
-
         self.frame = frame
         aruco_perimeter = []
         pixel_cm_ratio = []
         actual_size = []
 
         corners, ids, _ = self.detector()
-        #TODO: ROTATE IMAGE TO MATCH THE ARUCO DIRECTION
-
+        # TODO: ROTATE IMAGE TO MATCH THE ARUCO DIRECTION
 
         self.dico = {}
         if ids is not None:
@@ -87,7 +125,16 @@ class ArucoProcess:
                 Cx, Cy = calculer_centre(points)
                 Cx -= self.width // 2
                 Cy -= self.height // 2
-                self.dico[ids[j][0]] = (Cx, -Cy, actual_size)
+
+                if ids[j] == self.id:
+                    self.getPos(frame, corners)
+
+                self.dico[ids[j][0]] = (
+                    Cx,
+                    -Cy,
+                    self.rotaZion,
+                    actual_size,
+                )
 
         # print(self.dico.get(self.id) if self.id in self.dico.keys() else {})
 
@@ -107,7 +154,12 @@ class ArucoProcess:
             self.TL,
             self.TR,
             coloration(
-                self.dico.get(self.id)[1] if not self.dico.get(self.id) == None else -999, True
+                (
+                    self.dico.get(self.id)[1]
+                    if not self.dico.get(self.id) == None
+                    else -999
+                ),
+                True,
             ),
             thick,
         )
@@ -117,7 +169,12 @@ class ArucoProcess:
             self.BL,
             self.BR,
             coloration(
-                self.dico.get(self.id)[1] if not self.dico.get(self.id) == None else 999, False
+                (
+                    self.dico.get(self.id)[1]
+                    if not self.dico.get(self.id) == None
+                    else 999
+                ),
+                False,
             ),
             thick,
         )
@@ -127,7 +184,12 @@ class ArucoProcess:
             self.TL,
             self.BL,
             coloration(
-                self.dico.get(self.id)[0] if not self.dico.get(self.id) == None else 999, False
+                (
+                    self.dico.get(self.id)[0]
+                    if not self.dico.get(self.id) == None
+                    else 999
+                ),
+                False,
             ),
             thick,
         )
@@ -137,23 +199,25 @@ class ArucoProcess:
             self.TR,
             self.BR,
             coloration(
-                self.dico.get(self.id)[0] if not self.dico.get(self.id) == None else -999, True
+                (
+                    self.dico.get(self.id)[0]
+                    if not self.dico.get(self.id) == None
+                    else -999
+                ),
+                True,
             ),
             thick,
         )
         return frame
 
-    def hud(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
+    def hud(self, frame: cv2.typing.MatLike) -> None:
         """Put HUD on frame bebore displaying
 
         Args:
             frame (cv2.typing.MatLike): Frame to work with
-
-        Returns:
-            cv2.typing.MatLike: The frame with HUD applied on
         """
-        frame = cv2.putText(
-            self.lines(frame),
+        cv2.putText(
+            frame,
             f"{self.dico}",
             (3, 25),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -172,7 +236,34 @@ class ArucoProcess:
         cv2.imshow("ArUco Detection", frame)
 
 
-def coloration(val: float, positive: bool) -> tuple[int,int,int]:
+def isRotationMatrix(R):
+    Rt = np.transpose(R)
+    shouldBeIdentity = np.dot(Rt, R)
+    I = np.identity(3, dtype=R.dtype)
+    n = np.linalg.norm(I - shouldBeIdentity)
+    return n < 1e-6
+
+
+def rotationMatrixToEulerAngles(R):
+    assert isRotationMatrix(R)
+
+    sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+
+    singular = sy < 1e-6
+
+    if not singular:
+        x = math.atan2(R[2, 1], R[2, 2])
+        y = math.atan2(-R[2, 0], sy)
+        z = math.atan2(R[1, 0], R[0, 0])
+    else:
+        x = math.atan2(-R[1, 2], R[1, 1])
+        y = math.atan2(-R[2, 0], sy)
+        z = 0
+
+    return np.array([x, y, z])
+
+
+def coloration(val: float, positive: bool) -> tuple[int, int, int]:
     """Return Scalar for border lines coloration
 
     Args:

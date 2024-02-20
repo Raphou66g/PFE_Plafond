@@ -19,7 +19,8 @@ i=0
 for frame in images:
     img = cv2.imread(frame)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    (corners, ids, _) = cv2.aruco.detectMarkers(gray, arucoDict, parameters=arucoParams)
+
+    (corners, ids, _) = aruco.detectMarkers(gray, arucoDict, parameters=arucoParams)
 
     display = aruco.drawDetectedMarkers(img, corners, ids)
     cv2.imshow("test Rotation", display)

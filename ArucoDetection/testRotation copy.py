@@ -93,6 +93,11 @@ R_flip[2, 2] = -1.0
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_1000)
 parameters = aruco.DetectorParameters()
 
+def offset_image(image, bordercolour, xoffset, yoffset):
+    bordercolour = tuple(map(int, bordercolour))  # Convert Scalar to tuple
+    temp = cv2.copyMakeBorder(image, yoffset, 0, xoffset, 0, cv2.BORDER_CONSTANT, value=bordercolour)
+    return temp
+
 import glob
 
 images = glob.glob("**/test*.jpg", recursive=True)
@@ -104,7 +109,7 @@ for image in images:
     frame = cv2.imread(image)
 
     if i == 2:
-        frame = cv2.rotate(frame, cv2.ROTATE_180)
+       frame = offset_image(frame, (0,0,0), 100, 0)
     i += 1
 
     # -- Convert in gray scale
@@ -131,8 +136,8 @@ for image in images:
         rvec, tvec = ret[0][0, 0, :], ret[1][0, 0, :]
 
         # -- Draw the detected marker and put a reference frame over it
-        aruco.drawDetectedMarkers(frame, corners)
-        cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvec, tvec, 0.01)
+        frame = aruco.drawDetectedMarkers(frame, corners)
+        frame = cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvec, tvec, 10)
 
         # -- Print the tag position in camera frame
         str_position = "MARKER Position x=%4.0f  y=%4.0f  z=%4.0f" % (
