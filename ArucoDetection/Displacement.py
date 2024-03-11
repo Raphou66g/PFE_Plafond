@@ -6,7 +6,8 @@ from time import time
 class Parrot(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent, width=500, height=500)
-
+        self.info = tk.Label(self,text="Z : Front - S : Back\nQ : Left - D : Right\nA : Rotate Left - E : Rotate Right\nR : Up - F : Down\nEspace : Take Off - Ctrl : Land\nEscape : Panic Button")
+        self.info.pack()
         self.label = tk.Label(self, text="last key pressed:  ", width=20)
         self.label.pack(fill="both", padx=100, pady=100)
         self.start = int(time())
@@ -82,12 +83,12 @@ class Parrot(tk.Frame):
                 mambo.fly_direct(
                     roll=0, pitch=-strengh, yaw=0, vertical_movement=0, duration=time_t
                 )
-            case "e":  # E
-                print("Flying direct: turning left")
-                mambo.turn_degrees(-5)
             case "a":  # A
+                print("Flying direct: turning left")
+                mambo.turn_degrees(-10)
+            case "e":  # E
                 print("Flying direct: turning right")
-                mambo.turn_degrees(5)
+                mambo.turn_degrees(10)
         print("flying state is %s" % mambo.sensors.flying_state)
         mambo.ask_for_state_update()
 
@@ -95,7 +96,7 @@ class Parrot(tk.Frame):
 if __name__ == "__main__":
     root = tk.Tk()
     time_t = 0.1
-    strengh = 30
+    strengh = 20
     parr = Parrot(root)
     parr.pack(fill="both", expand=True)
 
@@ -107,8 +108,8 @@ if __name__ == "__main__":
     mambo = Mambo(mamboAddr, use_wifi=True)
 
     print("trying to connect")
-    # success = mambo.connect(num_retries=3)
-    success = True
+    success = mambo.connect(num_retries=3)
+    # success = True
     print("connected: %s" % success)
     if success:
         try:

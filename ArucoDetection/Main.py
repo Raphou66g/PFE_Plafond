@@ -32,18 +32,18 @@ import cv2.aruco as aruco
 import numpy as np
 import time
 
-import pyttsx3
+# import pyttsx3
 
-engine = pyttsx3.init()
+# engine = pyttsx3.init()
 
-engine.setProperty("rate", 100)
-voices = engine.getProperty("voices")
-engine.setProperty("voice", "english")
+# engine.setProperty("rate", 100)
+# voices = engine.getProperty("voices")
+# engine.setProperty("voice", "english")
 
 
-def tell(msg: str) -> None:
-    engine.say(msg)
-    engine.runAndWait()
+# def tell(msg: str) -> None:
+#     engine.say(msg)
+    # engine.runAndWait()
 
 
 # tell("Initialization")

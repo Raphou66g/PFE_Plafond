@@ -41,6 +41,12 @@ void serveLED(int duty)
   server.send(200, "text/plain", msg);
 }
 
+void serveELEC(int mode){
+  String msg = mode == 0 ? "R OFF" : "R ON";
+  Serial.println(msg);
+  server.send(200, "text/plain", msg);
+}
+
 void ledStatus(){
   server.send(200, "text/plain", ledState ? "LED is ON" : "LED is OFF");
 }
@@ -53,6 +59,16 @@ void ledOn(){
 void ledOff(){
   ledState = false;
   serveLED(0);
+}
+
+void electroOn(){
+  digitalWrite(16, HIGH);
+  serveELEC(1);
+}
+
+void electroOff(){
+  digitalWrite(16, LOW);
+  serveELEC(0);
 }
 
 void handleJpgLo()
@@ -97,7 +113,7 @@ void setup()
     bool ok = Camera.begin(cfg);
     Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
   }
-  // pinMode(flashLED, OUTPUT);
+  pinMode(16, OUTPUT);
   ledcSetup(canalPWM, 5000, 8);
   ledcAttachPin(flashLED, canalPWM);
   WiFi.persistent(false);
@@ -119,6 +135,8 @@ void setup()
   server.on("/led", ledStatus);
   server.on("/led/on", ledOn);
   server.on("/led/off", ledOff);
+  server.on("/electro/on", electroOn);
+  server.on("/electro/off", electroOff);
 
   server.begin();
 }

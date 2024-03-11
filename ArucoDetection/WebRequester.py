@@ -6,7 +6,7 @@ from enum import Enum
 
 DEBUG_CV2 = True
 
-IP = "192.168.145.235"
+IP = "192.168.146.235"
 
 class URLTYPE(Enum):
     URL_LO = f"http://{IP}/lo.jpg"
