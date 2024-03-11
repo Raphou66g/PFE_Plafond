@@ -126,7 +126,7 @@ class ArucoProcess:
                 Cx -= self.width // 2
                 Cy -= self.height // 2
 
-                if ids[j] == self.id:
+                if ids[j] == self.id or ids[j] == self.id+7:
                     self.getPos(frame, corners)
 
                 self.dico[ids[j][0]] = (
