@@ -15,6 +15,8 @@ class URLTYPE(Enum):
     URL_LIGHT = f"http://{IP}/led"
     URL_LIGHT_ON = f"http://{IP}/led/on"
     URL_LIGHT_OFF = f"http://{IP}/led/off"
+    URL_ELECTRO_ON = f"http://{IP}/electro/on"
+    URL_ELECTRO_OFF = f"http://{IP}/electro/off"
 
 
 def urlPicker(quality: str) -> str:
@@ -63,6 +65,14 @@ class WebRequester:
 
     def TurnOffLight(self):
         ret = urllib.request.urlopen(URLTYPE.URL_LIGHT_OFF.value).read().decode("utf8")
+        # print(str(ret))
+
+    def TurnOnElectro(self):
+        ret = urllib.request.urlopen(URLTYPE.URL_ELECTRO_ON.value).read().decode("utf8")
+        # print(str(ret))
+
+    def TurnOffElectro(self):
+        ret = urllib.request.urlopen(URLTYPE.URL_ELECTRO_OFF.value).read().decode("utf8")
         # print(str(ret))
 
 
