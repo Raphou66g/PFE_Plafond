@@ -5,6 +5,8 @@
 #define flashLED 4 // Flash LED
 #define canalPWM 2 // available PWM chan 
 
+#define RELAY 13
+
 bool ledState = false;
 
 const char *WIFI_SSID = "GalaxyA53";
@@ -62,12 +64,12 @@ void ledOff(){
 }
 
 void electroOn(){
-  digitalWrite(16, HIGH);
+  digitalWrite(RELAY, HIGH);
   serveELEC(1);
 }
 
 void electroOff(){
-  digitalWrite(16, LOW);
+  digitalWrite(RELAY, LOW);
   serveELEC(0);
 }
 
@@ -113,7 +115,8 @@ void setup()
     bool ok = Camera.begin(cfg);
     Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
   }
-  pinMode(16, OUTPUT);
+  pinMode(RELAY, OUTPUT);
+  digitalWrite(RELAY, LOW);
   ledcSetup(canalPWM, 5000, 8);
   ledcAttachPin(flashLED, canalPWM);
   WiFi.persistent(false);
@@ -132,7 +135,7 @@ void setup()
   server.on("/lo.jpg", handleJpgLo);
   server.on("/hi.jpg", handleJpgHi);
   server.on("/mid.jpg", handleJpgMid);
-  server.on("/led", ledStatus);
+  // server.on("/led", ledStatus);
   server.on("/led/on", ledOn);
   server.on("/led/off", ledOff);
   server.on("/electro/on", electroOn);

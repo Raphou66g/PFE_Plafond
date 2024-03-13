@@ -77,7 +77,7 @@ class ArucoProcess:
         )
         return corners, ids, aruco.drawDetectedMarkers(self.frame, corners, ids)
 
-    def getPos(self, frame, corners):
+    def getPos(self, frame, corners, arSize):
         # --- 180 deg rotation matrix around the x axis
         R_flip = np.zeros((3, 3), dtype=np.float32)
         R_flip[0, 0] = 1.0
@@ -85,7 +85,7 @@ class ArucoProcess:
         R_flip[2, 2] = -1.0
 
         ret = aruco.estimatePoseSingleMarkers(
-            corners, self.arucoSize / 10, self.matrix, self.distortion
+            corners, self.arucoSize / 10 if arSize == 1 else 1.25, self.matrix, self.distortion
         )
         rvec, tvec = ret[0][0, 0, :], ret[1][0, 0, :]
         cv2.drawFrameAxes(frame, self.matrix, self.distortion, rvec, tvec, 1)
@@ -112,11 +112,24 @@ class ArucoProcess:
         # TODO: ROTATE IMAGE TO MATCH THE ARUCO DIRECTION
 
         self.dico = {}
+        i81 = False
+        i88 = False
         if ids is not None:
+            if self.id in ids:
+                i81 = True
+            if self.ids+7 in ids:
+                i88 = True
+            if not i81 and not i88:
+                return
             for j in range(len(ids)):
+                if i88 and not self.id+7 == ids[j]:
+                    continue
+                if i81 and not i88 and not self.id == ids[j]:
+                    continue 
                 aruco_perimeter = cv2.arcLength(corners[j], True)
                 pixel_cm_ratio = aruco_perimeter / 20
-                actual_size = self.arucoSize / pixel_cm_ratio
+                size = self.arucoSize if ids[j] == self.id else 1.25
+                actual_size = size / pixel_cm_ratio
                 a = corners[j][0][0]
                 b = corners[j][0][1]
                 c = corners[j][0][2]
@@ -127,7 +140,7 @@ class ArucoProcess:
                 Cy -= self.height // 2
 
                 if ids[j] == self.id or ids[j] == self.id+7:
-                    self.getPos(frame, corners)
+                    self.getPos(frame, corners, 1 if ids[j] == self.id else 0)
 
                 self.dico[ids[j][0]] = (
                     Cx,

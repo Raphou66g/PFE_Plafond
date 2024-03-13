@@ -43,7 +43,7 @@ import time
 
 # def tell(msg: str) -> None:
 #     engine.say(msg)
-    # engine.runAndWait()
+# engine.runAndWait()
 
 
 # tell("Initialization")
@@ -54,6 +54,7 @@ from Calibration import calibrate
 
 SAVED = time.time()
 LED = False
+
 
 def BrightnessControl(image) -> bool:
     global SAVED
@@ -71,41 +72,41 @@ def BrightnessControl(image) -> bool:
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
+        print("python Main.py (lo|mid|hi) (4|5|6|7) [size in mm] [ArucoID=81]")
     elif not sys.argv[1] in ["lo", "mid", "hi"]:
         print(f"Invalid argument : {sys.argv[1]}. Must be in [lo, mid, hi]")
-        print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
+        print("python Main.py (lo|mid|hi) (4|5|6|7) [size in mm] [ArucoID=81]")
     elif not int(sys.argv[2]) in [4, 5, 6, 7]:
         print(f"Invalid argument : {sys.argv[2]}. Must be in [4, 5, 6, 7]")
-        print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
+        print("python Main.py (lo|mid|hi) (4|5|6|7) [size in mm] [ArucoID=81]")
     elif not int(sys.argv[3]) > 0:
         print(f"Invalid argument : {sys.argv[3]}. Must be > 0")
-        print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
+        print("python Main.py (lo|mid|hi) (4|5|6|7) [size in mm] [ArucoID=81]")
     elif len(sys.argv) == 5 and int(sys.argv[4]) < 0:
         print(f"Invalid argument : {sys.argv[4]}. Must be > 0")
-        print("python Main.py (lo|mid|hi) (4|5|6|7) (size in mm) [ArucoID=0]")
+        print("python Main.py (lo|mid|hi) (4|5|6|7) [size in mm] [ArucoID=81]")
     else:
         camera_matrix, camera_distortion = calibrate(False)
         prev = 999
+        requester: WebRequester = WebRequester(sys.argv[1])
+        processor: ArucoProcess = ArucoProcess(
+            camera_matrix,
+            camera_distortion,
+            int(sys.argv[2]),
+            int(sys.argv[3]),
+            requester.width,
+            requester.height,
+            int(sys.argv[4]),
+        )
         while True:
             try:
-                requester: WebRequester = WebRequester(sys.argv[1])
-                processor: ArucoProcess = ArucoProcess(
-                    camera_matrix,
-                    camera_distortion,
-                    int(sys.argv[2]),
-                    int(sys.argv[3]),
-                    requester.width,
-                    requester.height,
-                    int(sys.argv[4]),
-                )
 
                 img = requester.request()
 
-                if not BrightnessControl(img) and not LED:
-                    requester.TurnOnLight()
-                    LED = True
-                    # pass
+                # if not BrightnessControl(img) and not LED:
+                #     requester.TurnOnLight()
+                #     LED = True
+                # pass
 
                 if DEBUG_WEB:
                     ShowRequest(img)
@@ -133,8 +134,8 @@ if __name__ == "__main__":
                         # tell("Back") if cy > 0 else tell("Front")
                         print("Back") if cy > 0 else print("Front")
                 elif not dic == None:
-                        # tell("Up")
-                        print("Up")
+                    # tell("Up")
+                    print("Up")
                 else:
                     # tell("Hold")
                     print("Hold")
