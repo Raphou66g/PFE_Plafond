@@ -28,8 +28,8 @@ print(abspath(getsourcefile(lambda: 0)))
 # install()
 
 import cv2
-import cv2.aruco as aruco
 import numpy as np
+import cv2.aruco as aruco
 import time
 
 # import pyttsx3
