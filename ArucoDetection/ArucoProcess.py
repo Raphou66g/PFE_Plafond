@@ -97,6 +97,13 @@ class ArucoProcess:
         )
         self.rotaZion = math.degrees(yaw_marker)
 
+    def arucoDetected(self, frame):
+        self.frame = frame
+        _, ids, _ = self.detector()
+        if ids == None :
+            return False
+        return self.id in ids or self.id+7 in ids
+
     def getArucos(self, frame: cv2.typing.MatLike) -> None:
         """Retreive ArUcos and data on them and save it into self.dico
 
@@ -109,7 +116,6 @@ class ArucoProcess:
         actual_size = []
 
         corners, ids, _ = self.detector()
-        # TODO: ROTATE IMAGE TO MATCH THE ARUCO DIRECTION
 
         self.dico = {}
         i81 = False
@@ -117,7 +123,7 @@ class ArucoProcess:
         if ids is not None:
             if self.id in ids:
                 i81 = True
-            if self.ids+7 in ids:
+            if self.id+7 in ids:
                 i88 = True
             if not i81 and not i88:
                 return
