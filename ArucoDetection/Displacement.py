@@ -1,3 +1,4 @@
+from pyparrot.Bebop import Bebop
 from pyparrot.Minidrone import Mambo
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -44,15 +45,15 @@ class Parrot(tk.Frame):
         match event.keysym:
             case "space":  # Space
                 # print("taking off!")
-                mambo.safe_takeoff(2)
+                mambo.safe_takeoff(3)
             case "Control_L":  # Ctrl
                 # print("landing")
-                mambo.safe_land(2)
+                mambo.safe_land(3)
                 mambo.smart_sleep(2)
             case "Escape":  # Panic Button
                 # print("Panic Button Pushed")
                 # print("Force landing")
-                mambo.safe_land(2)
+                mambo.emergency_land()
                 mambo.smart_sleep(2)
                 # print("Disconnect")
                 mambo.disconnect()
@@ -89,10 +90,16 @@ class Parrot(tk.Frame):
                 )
             case "a":  # A
                 # print("Flying direct: turning left")
-                mambo.turn_degrees(-10)
+                mambo.fly_direct(
+                    roll=0, pitch=0, yaw=-10, vertical_movement=0, duration=time_t
+                )
+                # mambo.turn_degrees(-10)
             case "e":  # E
                 # print("Flying direct: turning right")
-                mambo.turn_degrees(10)
+                mambo.fly_direct(
+                    roll=0, pitch=0, yaw=10, vertical_movement=0, duration=time_t
+                )
+                # mambo.turn_degrees(10)
             case _ :
                 pass
         # print("flying state is %s" % mambo.sensors.flying_state)
@@ -111,10 +118,11 @@ if __name__ == "__main__":
 
     # make my mambo object
     # remember to set True/False for the wifi depending on if you are using the wifi or the BLE to connect
-    mambo = Mambo(mamboAddr, use_wifi=True)
+    mambo = Bebop(drone_type="Bebop")
+    # mambo = Mambo(mamboAddr, use_wifi=True)
 
     print("trying to connect")
-    success = mambo.connect(num_retries=3)
+    success = mambo.connect(10)
     # success = True
     print("connected: %s" % success)
     if success:

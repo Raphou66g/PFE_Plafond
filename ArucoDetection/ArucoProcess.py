@@ -11,22 +11,26 @@ class ArucoProcess:
         self,
         matrix: cv2.typing.MatLike,
         distortion: cv2.typing.MatLike,
-        arucoType: int,
-        arucoSize: int,
         width: int,
         height: int,
-        id: int = 0,
+        arucoType: int = 6,
+        arucoSize1: float = 100,
+        arucoSize2: float = 12.5,
+        id1: int = 81,
+        id2: int = 88,
     ) -> None:
         """Init ArucoProcess class
 
         Args:
             matrix (cv2.typing.MatLike): Camera matrix retrieve by the calibration
             distortion (cv2.typing.MatLike): Camera distortion retrieve by the calibration
-            arucoType (int): int x int type
-            arucoSize (int): Real size in mm
             width (int): Width of the frame in pixel. e.g: 1280
             height (int): Height of the frame in pixel. e.g: 720
-            id (int, optional): ID of the searched ArUco. Defaults to 0.
+            arucoType (int, optional): int x int type. Defaults to 6.
+            arucoSize1 (int, optional): Big ArUco real size in mm. Defaults to 100 (mm).
+            arucoSize2 (int, optional): Small ArUco real size in mm. Defaults to 12.5 (mm).
+            id1 (int, optional): ID of the biggest searched ArUco. Defaults to 81.
+            id2 (int, optional): ID of the smallest searched ArUco. Defaults to 88.
         """
         self.matrix = matrix
         self.distortion = distortion
@@ -39,20 +43,22 @@ class ArucoProcess:
                 else aruco.DICT_6X6_1000 if arucoType == 6 else aruco.DICT_7X7_1000
             )
         )
-        self.arucoSize = arucoSize
+        self.arucoSize1 = arucoSize1
+        self.arucoSize2 = arucoSize2
         self.arucoDict = aruco.getPredefinedDictionary(self.arucoType)
         self.arucoParams = aruco.DetectorParameters()
         self.width = width
         self.height = height
-        self.id = id
+        self.id1 = id1
+        self.id2 = id2
         self.frame: cv2.typing.MatLike = None
         self.dico = {}
         self.rotaZion = 0
 
-        self.TL = (1, 1)
-        self.TR = (self.width - 1, 1)
-        self.BL = (1, self.height - 1)
-        self.BR = (self.width - 1, self.height - 1)
+        # self.TL = (1, 1)
+        # self.TR = (self.width - 1, 1)
+        # self.BL = (1, self.height - 1)
+        # self.BR = (self.width - 1, self.height - 1)
 
     def grayOut(self) -> cv2.typing.MatLike:
         """Return grayscale of the frame
@@ -77,7 +83,7 @@ class ArucoProcess:
         )
         return corners, ids, aruco.drawDetectedMarkers(self.frame, corners, ids)
 
-    def getPos(self, frame, corners, arSize):
+    def getPos(self, frame, corners, arID):
         # --- 180 deg rotation matrix around the x axis
         R_flip = np.zeros((3, 3), dtype=np.float32)
         R_flip[0, 0] = 1.0
@@ -85,7 +91,10 @@ class ArucoProcess:
         R_flip[2, 2] = -1.0
 
         ret = aruco.estimatePoseSingleMarkers(
-            corners, self.arucoSize / 10 if arSize == 1 else 1.25, self.matrix, self.distortion
+            corners,
+            self.arucoSize1 / 10 if arID == self.id1 else self.arucoSize2 / 10,
+            self.matrix,
+            self.distortion,
         )
         rvec, tvec = ret[0][0, 0, :], ret[1][0, 0, :]
         cv2.drawFrameAxes(frame, self.matrix, self.distortion, rvec, tvec, 1)
@@ -100,9 +109,9 @@ class ArucoProcess:
     def arucoDetected(self, frame):
         self.frame = frame
         _, ids, _ = self.detector()
-        if ids == None :
+        if ids == None:
             return False
-        return self.id in ids or self.id+7 in ids
+        return self.id1 in ids or self.id2 in ids
 
     def getArucos(self, frame: cv2.typing.MatLike) -> None:
         """Retreive ArUcos and data on them and save it into self.dico
@@ -116,118 +125,113 @@ class ArucoProcess:
         actual_size = []
 
         corners, ids, _ = self.detector()
+        # print(ids)
 
         self.dico = {}
-        i81 = False
-        i88 = False
-        if ids is not None:
-            if self.id in ids:
-                i81 = True
-            if self.id+7 in ids:
-                i88 = True
-            if not i81 and not i88:
+        if ids == None:
+            return
+        for j in range(len(ids)):
+            # print(f"curr : {ids[j]} : {88 in ids[j]}")
+            is81 = self.id1 in ids[j]
+            is88 = self.id2 in ids[j]
+            if not is81 and not is88 :
                 return
-            for j in range(len(ids)):
-                if i88 and not self.id+7 == ids[j]:
-                    continue
-                if i81 and not i88 and not self.id == ids[j]:
-                    continue 
-                aruco_perimeter = cv2.arcLength(corners[j], True)
-                pixel_cm_ratio = aruco_perimeter / 20
-                size = self.arucoSize if ids[j] == self.id else 1.25
-                actual_size = size / pixel_cm_ratio
-                a = corners[j][0][0]
-                b = corners[j][0][1]
-                c = corners[j][0][2]
-                d = corners[j][0][3]
-                points = [a, b, c, d]
-                Cx, Cy = calculer_centre(points)
-                Cx -= self.width // 2
-                Cy -= self.height // 2
+            aruco_perimeter = cv2.arcLength(corners[j], True)
+            pixel_cm_ratio = aruco_perimeter / 20
+            size = (self.arucoSize1 if is81 else self.arucoSize2) / 10
+            actual_size = size / pixel_cm_ratio
+            a = corners[j][0][0]
+            b = corners[j][0][1]
+            c = corners[j][0][2]
+            d = corners[j][0][3]
+            points = [a, b, c, d]
+            Cx, Cy = calculer_centre(points)
+            Cx -= self.width // 2
+            Cy -= self.height // 2
 
-                if ids[j] == self.id or ids[j] == self.id+7:
-                    self.getPos(frame, corners, 1 if ids[j] == self.id else 0)
+            if is81 or is88:
+                self.getPos(frame, corners, self.id2 if is88 else self.id1)
 
-                self.dico[ids[j][0]] = (
-                    Cx,
-                    -Cy,
-                    self.rotaZion,
-                    actual_size,
-                )
+            self.dico[ids[j][0]] = (
+                Cx,
+                -Cy,
+                self.rotaZion,
+                actual_size,
+            )
 
         # print(self.dico.get(self.id) if self.id in self.dico.keys() else {})
 
-    def lines(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
-        """Draw HUD border lines
+    # def lines(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
+    #     """Draw HUD border lines
 
-        Args:
-            frame (cv2.typing.MatLike): Frame to work with
+    #     Args:
+    #         frame (cv2.typing.MatLike): Frame to work with
 
-        Returns:
-            cv2.typing.MatLike: Frame with lines drawn on it
-        """
-        thick = 3
-        # TOP
-        frame = cv2.line(
-            frame,
-            self.TL,
-            self.TR,
-            coloration(
-                (
-                    self.dico.get(self.id)[1]
-                    if not self.dico.get(self.id) == None
-                    else -999
-                ),
-                True,
-            ),
-            thick,
-        )
-        # BOTTOM
-        frame = cv2.line(
-            frame,
-            self.BL,
-            self.BR,
-            coloration(
-                (
-                    self.dico.get(self.id)[1]
-                    if not self.dico.get(self.id) == None
-                    else 999
-                ),
-                False,
-            ),
-            thick,
-        )
-        # LEFT
-        frame = cv2.line(
-            frame,
-            self.TL,
-            self.BL,
-            coloration(
-                (
-                    self.dico.get(self.id)[0]
-                    if not self.dico.get(self.id) == None
-                    else 999
-                ),
-                False,
-            ),
-            thick,
-        )
-        # RIGHT
-        frame = cv2.line(
-            frame,
-            self.TR,
-            self.BR,
-            coloration(
-                (
-                    self.dico.get(self.id)[0]
-                    if not self.dico.get(self.id) == None
-                    else -999
-                ),
-                True,
-            ),
-            thick,
-        )
-        return frame
+    #     Returns:
+    #         cv2.typing.MatLike: Frame with lines drawn on it
+    #     """
+    #     thick = 3
+    #     # TOP
+    #     frame = cv2.line(
+    #         frame,
+    #         self.TL,
+    #         self.TR,
+    #         coloration(
+    #             (
+    #                 self.dico.get(self.id)[1]
+    #                 if not self.dico.get(self.id) == None
+    #                 else -999
+    #             ),
+    #             True,
+    #         ),
+    #         thick,
+    #     )
+    #     # BOTTOM
+    #     frame = cv2.line(
+    #         frame,
+    #         self.BL,
+    #         self.BR,
+    #         coloration(
+    #             (
+    #                 self.dico.get(self.id)[1]
+    #                 if not self.dico.get(self.id) == None
+    #                 else 999
+    #             ),
+    #             False,
+    #         ),
+    #         thick,
+    #     )
+    #     # LEFT
+    #     frame = cv2.line(
+    #         frame,
+    #         self.TL,
+    #         self.BL,
+    #         coloration(
+    #             (
+    #                 self.dico.get(self.id)[0]
+    #                 if not self.dico.get(self.id) == None
+    #                 else 999
+    #             ),
+    #             False,
+    #         ),
+    #         thick,
+    #     )
+    #     # RIGHT
+    #     frame = cv2.line(
+    #         frame,
+    #         self.TR,
+    #         self.BR,
+    #         coloration(
+    #             (
+    #                 self.dico.get(self.id)[0]
+    #                 if not self.dico.get(self.id) == None
+    #                 else -999
+    #             ),
+    #             True,
+    #         ),
+    #         thick,
+    #     )
+    #     return frame
 
     def hud(self, frame: cv2.typing.MatLike) -> None:
         """Put HUD on frame bebore displaying
