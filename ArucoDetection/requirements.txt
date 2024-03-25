@@ -2,5 +2,4 @@ opencv-python
 opencv-contrib-python
 numpy
 pyparrot
-pillow
-zeroconf
+zeroconf==0.20.0

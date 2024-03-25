@@ -1,4 +1,5 @@
-from pyparrot.Minidrone import Mambo
+from pyparrot.Bebop import Bebop
+# from pyparrot.Minidrone import Mambo
 import tkinter as tk
 from PIL import Image, ImageTk
 import time
@@ -12,6 +13,7 @@ from Calibration import calibrate
 
 SAVED = time.time()
 LED = False
+ELECTRO = False
 DEBUG = True
 
 class Parrot(tk.Frame):
@@ -69,37 +71,37 @@ class Parrot(tk.Frame):
                 # TODO
             case "space":  # Space
                 # print("taking off!")
-                mambo.safe_takeoff(2)
+                bebop.safe_takeoff(2)
             case "Control_L":  # Ctrl
                 # print("landing")
-                mambo.safe_land(2)
-                mambo.smart_sleep(2)
+                bebop.safe_land(2)
+                bebop.smart_sleep(2)
             case "Escape":  # Panic Button
                 # print("Panic Button Pushed")
                 # print("Force landing")
-                mambo.safe_land(2)
-                mambo.smart_sleep(2)
+                bebop.safe_land(2)
+                bebop.smart_sleep(2)
                 # print("Disconnect")
-                mambo.disconnect()
+                bebop.disconnect()
                 root.quit()
             case "r":  # R
                 # print("Flying direct: going up")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=0, pitch=0, yaw=0, vertical_movement=10, duration=time_t
                 )
             case "f":  # F
                 # print("Flying direct: going down")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=0, pitch=0, yaw=0, vertical_movement=-10, duration=time_t
                 )
             case "d":  # D
                 # print("Flying direct: going left")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=strengh_H, pitch=0, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "q":  # Q
                 # print("Flying direct: going right")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=-strengh_H,
                     pitch=0,
                     yaw=0,
@@ -108,12 +110,12 @@ class Parrot(tk.Frame):
                 )
             case "z":  # Z
                 # print("Flying direct: going forward")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=0, pitch=strengh_H, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "s":  # S
                 # print("Flying direct: going backward")
-                mambo.fly_direct(
+                bebop.fly_direct(
                     roll=0,
                     pitch=-strengh_H,
                     yaw=0,
@@ -122,12 +124,18 @@ class Parrot(tk.Frame):
                 )
             case "a":  # A
                 # print("Flying direct: turning left")
-                mambo.turn_degrees(-10)
+                bebop.fly_direct(
+                    roll=0, pitch=0, yaw=-strengh_H, vertical_movement=0, duration=time_t
+                )
+                # mambo.turn_degrees(-10)
             case "e":  # E
                 # print("Flying direct: turning right")
-                mambo.turn_degrees(10)
+                bebop.fly_direct(
+                    roll=0, pitch=0, yaw=strengh_H, vertical_movement=0, duration=time_t
+                )
+                # mambo.turn_degrees(10)
         # print("flying state is %s" % mambo.sensors.flying_state)
-        mambo.ask_for_state_update()
+        bebop.ask_for_state_update()
 
 def BrightnessControl(image) -> bool:
     global SAVED
@@ -151,34 +159,40 @@ def autoland():
             if DEBUG:
                 processor.showArucos()
 
-            dic = processor.dico.get(processor.id)
+            dic = processor.dico.get(processor.id2, processor.dico.get(processor.id1))
             cx, cy, rotZ, dist = dic if not dic == None else (0, 0, 0, 0)
             prev = (cx, cy, rotZ, dist) if dist != 0 else prev
 
+            if processor.id2 in processor.dico and not ELECTRO:
+                requester.TurnOnElectro()
+                ELECTRO = True
+
             print(prev)
-            if abs(rotZ) > 5:
+            if abs(rotZ) > 10:
                 print("Rotate Left") if rotZ < 0 else print("Rotate Right")
-                mambo.turn_degrees(-5) if rotZ < 0 else mambo.turn_degrees(5)
-                mambo.ask_for_state_update()
+                bebop.fly_direct(roll=0, pitch=0, yaw=-strengh_L, vertical_movement=0, duration=time_t) if rotZ < 0 else bebop.fly_direct(roll=0, pitch=0, yaw=strengh_L, vertical_movement=0, duration=time_t)
+                bebop.ask_for_state_update()
 
             elif abs(cx) > 20 or abs(cy) > 20:
                 if abs(cx) > 20:
                     print("Left") if cx > 0 else print("Right")
-                    mambo.fly_direct(roll=-strengh_L, pitch=0, yaw=0, vertical_movement=0, duration=time_t) if cx > 0 else mambo.fly_direct(roll=strengh_L, pitch=0, yaw=0, vertical_movement=0, duration=time_t)
-                    mambo.ask_for_state_update()
+                    bebop.fly_direct(roll=-strengh_L, pitch=0, yaw=0, vertical_movement=0, duration=time_t) if cx > 0 else bebop.fly_direct(roll=strengh_L, pitch=0, yaw=0, vertical_movement=0, duration=time_t)
+                    bebop.ask_for_state_update()
                     
                 if abs(cy) > 20:
                     print("Back") if cy > 0 else print("Front")
-                    mambo.fly_direct(roll=0, pitch=-strengh_L, yaw=0, vertical_movement=0, duration=time_t) if cy > 0 else mambo.fly_direct(roll=0, pitch=strengh_L, yaw=0, vertical_movement=0, duration=time_t)
-                    mambo.ask_for_state_update()
+                    bebop.fly_direct(roll=0, pitch=-strengh_L, yaw=0, vertical_movement=0, duration=time_t) if cy > 0 else bebop.fly_direct(roll=0, pitch=strengh_L, yaw=0, vertical_movement=0, duration=time_t)
+                    bebop.ask_for_state_update()
 
             elif not dic == None :
                 print("Up")
-                mambo.fly_direct(roll=0, pitch=0, yaw=0, vertical_movement=5, duration=time_t)
-                mambo.ask_for_state_update()
+                bebop.fly_direct(roll=0, pitch=0, yaw=0, vertical_movement=5, duration=time_t)
+                bebop.ask_for_state_update()
 
             else:
                 print("Hold")
+
+            # TODO: EXIT CONDITION
         except KeyboardInterrupt:
             break
 
@@ -206,21 +220,21 @@ if __name__ == "__main__":
     parr.pack(fill="both", expand=True)
 
     # you will need to change this to the address of YOUR mambo
-    mamboAddr = "e0:14:d0:63:3d:d0"
+    # mamboAddr = "e0:14:d0:63:3d:d0"
 
     # make my mambo object
     # remember to set True/False for the wifi depending on if you are using the wifi or the BLE to connect
-    mambo = Mambo(mamboAddr, use_wifi=True)
+    bebop = Bebop(drone_type="Bebop")
 
     print("trying to connect")
-    # success = mambo.connect(num_retries=3)
-    success = True
+    success = bebop.connect(10)
+    # success = True
     print("connected: %s" % success)
     if success:
         try:
             print("sleeping")
-            mambo.ask_for_state_update()
-            mambo.smart_sleep(2)
+            bebop.ask_for_state_update()
+            bebop.smart_sleep(2)
 
             # parr.clock()
             parr.detectAruco()
@@ -228,6 +242,6 @@ if __name__ == "__main__":
 
         except KeyboardInterrupt:
             print("disconnect")
-            mambo.safe_land(2)
-            mambo.smart_sleep(2)
-            mambo.disconnect()
+            bebop.safe_land(2)
+            bebop.smart_sleep(2)
+            bebop.disconnect()
