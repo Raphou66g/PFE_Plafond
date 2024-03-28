@@ -142,7 +142,7 @@ for image in images:
         # -- Print the tag position in camera frame
         str_position = "MARKER Position x=%4.0f  y=%4.0f  z=%4.0f" % (
             tvec[0],
-            tvec[1],testRotation copy
+            tvec[1],
             tvec[2],
         )
         font = cv2.FONT_HERSHEY_SIMPLEX
