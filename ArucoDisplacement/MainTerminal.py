@@ -138,6 +138,14 @@ class Parrot(tk.Frame):
         bebop.ask_for_state_update()
 
 def BrightnessControl(image) -> bool:
+    """Check luminosity
+
+    Args:
+        image (Matlike): image to work with
+
+    Returns:
+        bool: True if the luminosity is correct, else False
+    """
     global SAVED
     now = time.time()
     if int(now - SAVED) < 5:
@@ -149,11 +157,17 @@ def BrightnessControl(image) -> bool:
     mean = np.mean(gray)
     return mean > limit
 
+# Autolanding
 def autoland():
     prev = 999
     while True:
         try :
-            img = requester.request()
+            img = requester.request() #Retreive img
+
+            if not BrightnessControl(img) and not LED:
+                requester.TurnOnLight()
+                LED = True
+
             processor.getArucos(img)
 
             if DEBUG:
@@ -167,7 +181,7 @@ def autoland():
                 requester.TurnOnElectro()
                 ELECTRO = True
 
-            print(prev)
+
             if abs(rotZ) > 10:
                 print("Rotate Left") if rotZ < 0 else print("Rotate Right")
                 bebop.fly_direct(roll=0, pitch=0, yaw=-strengh_L, vertical_movement=0, duration=time_t) if rotZ < 0 else bebop.fly_direct(roll=0, pitch=0, yaw=strengh_L, vertical_movement=0, duration=time_t)

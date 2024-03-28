@@ -5,18 +5,19 @@
 #define flashLED 4 // Flash LED
 #define canalPWM 2 // available PWM chan 
 
-#define RELAY 13
+#define RELAY 13 // Relay PIN
 
-bool ledState = false;
+const char *WIFI_SSID = "SSID"; // SSID
+const char *WIFI_PASS = "PASSWORD"; // PASSWORD
 
-const char *WIFI_SSID = "GalaxyA53";
-const char *WIFI_PASS = "dkue5838";
+WebServer server(80); // Initiate web server
 
-WebServer server(80);
-
+// Define resolutions sizes
 static auto loRes = esp32cam::Resolution::find(320, 240);
 static auto midRes = esp32cam::Resolution::find(640, 480);
 static auto hiRes = esp32cam::Resolution::find(1280, 720);
+
+// Capture and Send func
 void serveJpg()
 {
   auto frame = esp32cam::capture();
@@ -35,6 +36,7 @@ void serveJpg()
   frame->writeTo(client);
 }
 
+// LED func
 void serveLED(int duty)
 {
   ledcWrite(canalPWM, duty);
@@ -43,36 +45,36 @@ void serveLED(int duty)
   server.send(200, "text/plain", msg);
 }
 
+// Electromagnet func
 void serveELEC(int mode){
   String msg = mode == 0 ? "R OFF" : "R ON";
   Serial.println(msg);
   server.send(200, "text/plain", msg);
 }
 
-void ledStatus(){
-  server.send(200, "text/plain", ledState ? "LED is ON" : "LED is OFF");
-}
-
+// LED ON handler
 void ledOn(){
-  ledState = true;
   serveLED(10);
 }
 
+// LED OFF handler
 void ledOff(){
-  ledState = false;
   serveLED(0);
 }
 
+// Electromagnet ON handler
 void electroOn(){
   digitalWrite(RELAY, HIGH);
   serveELEC(1);
 }
 
+// Electromagnet OFF handler
 void electroOff(){
   digitalWrite(RELAY, LOW);
   serveELEC(0);
 }
 
+// LOW RES handler
 void handleJpgLo()
 {
   if (!esp32cam::Camera.changeResolution(loRes))
@@ -82,6 +84,7 @@ void handleJpgLo()
   serveJpg();
 }
 
+// HIGH RES handler
 void handleJpgHi()
 {
   if (!esp32cam::Camera.changeResolution(hiRes))
@@ -91,6 +94,7 @@ void handleJpgHi()
   serveJpg();
 }
 
+// MEDIUM RES handler
 void handleJpgMid()
 {
   if (!esp32cam::Camera.changeResolution(midRes))
@@ -100,6 +104,7 @@ void handleJpgMid()
   serveJpg();
 }
 
+// Setup. Called once
 void setup()
 {
   Serial.begin(115200);
@@ -126,24 +131,30 @@ void setup()
   {
     delay(500);
   }
+
+  // Defining the http entries
+  server.on("/lo.jpg", handleJpgLo);
+  server.on("/hi.jpg", handleJpgHi);
+  server.on("/mid.jpg", handleJpgMid);
+  server.on("/led/on", ledOn);
+  server.on("/led/off", ledOff);
+  server.on("/electro/on", electroOn);
+  server.on("/electro/off", electroOff);
+  server.begin();
+
+  // Print URLs
   Serial.print("http://");
   Serial.println(WiFi.localIP());
   Serial.println("  /lo.jpg");
   Serial.println("  /hi.jpg");
   Serial.println("  /mid.jpg");
-
-  server.on("/lo.jpg", handleJpgLo);
-  server.on("/hi.jpg", handleJpgHi);
-  server.on("/mid.jpg", handleJpgMid);
-  // server.on("/led", ledStatus);
-  server.on("/led/on", ledOn);
-  server.on("/led/off", ledOff);
-  server.on("/electro/on", electroOn);
-  server.on("/electro/off", electroOff);
-
-  server.begin();
+  Serial.println("  /led/on");
+  Serial.println("  /led/off");
+  Serial.println("  /electro/on");
+  Serial.println("  /electro/off");
 }
 
+// Await connections
 void loop()
 {
   server.handleClient();

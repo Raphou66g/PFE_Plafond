@@ -161,77 +161,77 @@ class ArucoProcess:
 
         # print(self.dico.get(self.id) if self.id in self.dico.keys() else {})
 
-    # def lines(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
-    #     """Draw HUD border lines
+    def lines(self, frame: cv2.typing.MatLike) -> cv2.typing.MatLike:
+        """Draw HUD border lines
 
-    #     Args:
-    #         frame (cv2.typing.MatLike): Frame to work with
+        Args:
+            frame (cv2.typing.MatLike): Frame to work with
 
-    #     Returns:
-    #         cv2.typing.MatLike: Frame with lines drawn on it
-    #     """
-    #     thick = 3
-    #     # TOP
-    #     frame = cv2.line(
-    #         frame,
-    #         self.TL,
-    #         self.TR,
-    #         coloration(
-    #             (
-    #                 self.dico.get(self.id)[1]
-    #                 if not self.dico.get(self.id) == None
-    #                 else -999
-    #             ),
-    #             True,
-    #         ),
-    #         thick,
-    #     )
-    #     # BOTTOM
-    #     frame = cv2.line(
-    #         frame,
-    #         self.BL,
-    #         self.BR,
-    #         coloration(
-    #             (
-    #                 self.dico.get(self.id)[1]
-    #                 if not self.dico.get(self.id) == None
-    #                 else 999
-    #             ),
-    #             False,
-    #         ),
-    #         thick,
-    #     )
-    #     # LEFT
-    #     frame = cv2.line(
-    #         frame,
-    #         self.TL,
-    #         self.BL,
-    #         coloration(
-    #             (
-    #                 self.dico.get(self.id)[0]
-    #                 if not self.dico.get(self.id) == None
-    #                 else 999
-    #             ),
-    #             False,
-    #         ),
-    #         thick,
-    #     )
-    #     # RIGHT
-    #     frame = cv2.line(
-    #         frame,
-    #         self.TR,
-    #         self.BR,
-    #         coloration(
-    #             (
-    #                 self.dico.get(self.id)[0]
-    #                 if not self.dico.get(self.id) == None
-    #                 else -999
-    #             ),
-    #             True,
-    #         ),
-    #         thick,
-    #     )
-    #     return frame
+        Returns:
+            cv2.typing.MatLike: Frame with lines drawn on it
+        """
+        thick = 3
+        # TOP
+        frame = cv2.line(
+            frame,
+            self.TL,
+            self.TR,
+            coloration(
+                (
+                    self.dico.get(self.id)[1]
+                    if not self.dico.get(self.id) == None
+                    else -999
+                ),
+                True,
+            ),
+            thick,
+        )
+        # BOTTOM
+        frame = cv2.line(
+            frame,
+            self.BL,
+            self.BR,
+            coloration(
+                (
+                    self.dico.get(self.id)[1]
+                    if not self.dico.get(self.id) == None
+                    else 999
+                ),
+                False,
+            ),
+            thick,
+        )
+        # LEFT
+        frame = cv2.line(
+            frame,
+            self.TL,
+            self.BL,
+            coloration(
+                (
+                    self.dico.get(self.id)[0]
+                    if not self.dico.get(self.id) == None
+                    else 999
+                ),
+                False,
+            ),
+            thick,
+        )
+        # RIGHT
+        frame = cv2.line(
+            frame,
+            self.TR,
+            self.BR,
+            coloration(
+                (
+                    self.dico.get(self.id)[0]
+                    if not self.dico.get(self.id) == None
+                    else -999
+                ),
+                True,
+            ),
+            thick,
+        )
+        return frame
 
     def hud(self, frame: cv2.typing.MatLike) -> None:
         """Put HUD on frame bebore displaying
@@ -240,7 +240,7 @@ class ArucoProcess:
             frame (cv2.typing.MatLike): Frame to work with
         """
         cv2.putText(
-            frame,
+            self.lines(frame),
             f"{self.dico}",
             (3, 25),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -259,7 +259,16 @@ class ArucoProcess:
         cv2.imshow("ArUco Detection", frame)
 
 
+
 def isRotationMatrix(R):
+    """Check type of matrix 
+
+    Args:
+        R (matrix): rotation matrix
+
+    Returns:
+        bool: True if R is a rotation matrix, else False
+    """
     Rt = np.transpose(R)
     shouldBeIdentity = np.dot(Rt, R)
     I = np.identity(3, dtype=R.dtype)
@@ -268,6 +277,14 @@ def isRotationMatrix(R):
 
 
 def rotationMatrixToEulerAngles(R):
+    """Transform the Rotation matix to Euler-Angle 
+
+    Args:
+        R (matrix): rotation matrix
+
+    Returns:
+        NDArray[Any]: roll, pitch and yaw in Euler-Angle
+    """
     assert isRotationMatrix(R)
 
     sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
@@ -339,34 +356,3 @@ def calculer_centre(points: list) -> tuple[float, float]:
 
     # Retourner les coordonnées du centre
     return cx, cy
-
-
-# if __name__ == "__main__":
-#     arucoParams = aruco.DetectorParameters()
-#     arucoDict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
-#     # Capturer la vidéo depuis la webcam (0 pour la webcam par défaut)
-#     cap = cv2.VideoCapture(-1)
-
-#     while True:
-#         # Lire une frame depuis la vidéo
-#         ret, frame = cap.read()
-#         dico = GetArucoPoint(arucoDict, arucoParams, frame, cap.get(3), cap.get(4))
-#         # Afficher la vidéo en direct
-#         print(dico)
-#         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-#         # print(width,height)
-#         (corners, ids, _) = cv2.aruco.detectMarkers(
-#             gray, arucoDict, parameters=arucoParams
-#         )
-#         # print(corners)
-#         # Nouvelle coordonnée x centrée = Ancienne coordonnée x - (Largeur de l'image / 2)
-#         # Nouvelle coordonnée y centrée = Ancienne coordonnée y - (Hauteur de l'image / 2)
-
-#         frame = aruco.drawDetectedMarkers(frame, corners, ids)
-#         cv2.imshow("ArUco Detection", frame)
-#         if cv2.waitKey(1) & 0xFF == ord("q"):
-#             break
-
-#     cap.release()
-#     cv2.destroyAllWindows()

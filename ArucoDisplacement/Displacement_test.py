@@ -33,7 +33,7 @@ class Parrot(tk.Frame):
 
         # give keyboard focus to the label by default, and whenever
         # the user clicks on it
-        self.label.focus_set()
+        self.label.ftestRotationocus_set()
         self.label.bind("<1>", lambda event: self.label.focus_set())
 
     def clock(self):
@@ -45,65 +45,65 @@ class Parrot(tk.Frame):
         match event.keysym:
             case "space":  # Space
                 # print("taking off!")
-                mambo.safe_takeoff(3)
+                parrot.safe_takeoff(3)
             case "Control_L":  # Ctrl
                 # print("landing")
-                mambo.safe_land(3)
-                mambo.smart_sleep(2)
+                parrot.safe_land(3)
+                parrot.smart_sleep(2)
             case "Escape":  # Panic Button
                 # print("Panic Button Pushed")
                 # print("Force landing")
-                mambo.emergency_land()
-                mambo.smart_sleep(2)
+                parrot.emergency_land()
+                parrot.smart_sleep(2)
                 # print("Disconnect")
-                mambo.disconnect()
+                parrot.disconnect()
                 root.quit()
             case "r":  # R
                 # print("Flying direct: going up")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=0, yaw=0, vertical_movement=10, duration=time_t
                 )
             case "f":  # F
                 # print("Flying direct: going down")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=0, yaw=0, vertical_movement=-10, duration=time_t
                 )
             case "d":  # D
                 # print("Flying direct: going left")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=strengh, pitch=0, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "q":  # Q
                 # print("Flying direct: going right")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=-strengh, pitch=0, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "z":  # Z
                 # print("Flying direct: going forward")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=strengh, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "s":  # S
                 # print("Flying direct: going backward")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=-strengh, yaw=0, vertical_movement=0, duration=time_t
                 )
             case "a":  # A
                 # print("Flying direct: turning left")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=0, yaw=-10, vertical_movement=0, duration=time_t
                 )
-                # mambo.turn_degrees(-10)
+                # parrot.turn_degrees(-10)
             case "e":  # E
                 # print("Flying direct: turning right")
-                mambo.fly_direct(
+                parrot.fly_direct(
                     roll=0, pitch=0, yaw=10, vertical_movement=0, duration=time_t
                 )
-                # mambo.turn_degrees(10)
+                # parrot.turn_degrees(10)
             case _ :
                 pass
-        # print("flying state is %s" % mambo.sensors.flying_state)
-        # mambo.ask_for_state_update()
+        # print("flying state is %s" % parrot.sensors.flying_state)
+        # parrot.ask_for_state_update()
 
 
 if __name__ == "__main__":
@@ -113,29 +113,30 @@ if __name__ == "__main__":
     parr = Parrot(root)
     parr.pack(fill="both", expand=True)
 
-    # you will need to change this to the address of YOUR mambo
+    # you will need to change this to the address of YOUR parrot
     mamboAddr = "e0:14:d0:63:3d:d0"
 
-    # make my mambo object
+    # make my parrot object
     # remember to set True/False for the wifi depending on if you are using the wifi or the BLE to connect
-    mambo = Bebop(drone_type="Bebop")
-    # mambo = Mambo(mamboAddr, use_wifi=True)
+    
+    # parrot = Mambo(mamboAddr, use_wifi=True)
+    parrot = Bebop(drone_type="Bebop")
 
     print("trying to connect")
-    success = mambo.connect(10)
+    success = parrot.connect(10)
     # success = True
     print("connected: %s" % success)
     if success:
         try:
             print("sleeping")
-            mambo.ask_for_state_update()
-            mambo.smart_sleep(2)
+            parrot.ask_for_state_update()
+            parrot.smart_sleep(2)
 
             # parr.clock()
             root.mainloop()
 
         except KeyboardInterrupt:
             print("disconnect")
-            mambo.safe_land(2)
-            mambo.smart_sleep(2)
-            mambo.disconnect()
+            parrot.safe_land(2)
+            parrot.smart_sleep(2)
+            parrot.disconnect()

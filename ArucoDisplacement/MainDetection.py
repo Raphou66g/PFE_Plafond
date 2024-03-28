@@ -32,22 +32,6 @@ import numpy as np
 import cv2.aruco as aruco
 import time
 
-# import pyttsx3
-
-# engine = pyttsx3.init()
-
-# engine.setProperty("rate", 100)
-# voices = engine.getProperty("voices")
-# engine.setProperty("voice", "english")
-
-
-# def tell(msg: str) -> None:
-#     engine.say(msg)
-# engine.runAndWait()
-
-
-# tell("Initialization")
-
 from ArucoProcess import ArucoProcess
 from WebRequester import WebRequester, ShowRequest
 from Calibration import calibrate
@@ -159,25 +143,26 @@ if __name__ == "__main__":
                     requester.TurnOnElectro()
                     ELECTRO = True
 
-                # # print("\n")
-                # # print(prev)
-                # if abs(rotZ) > 5:
-                #     # tell("Rotate Left") if rotZ < 0 else tell("Rotate Right")
-                #     print("Rotate Left") if rotZ < 0 else print("Rotate Right")
-                # elif abs(cx) > 20 or abs(cy) > 20:
-                #     if abs(cx) > 20:
-                #         # tell("Left") if cx > 0 else tell("Right")
-                #         print("Left") if cx > 0 else print("Right")
+                if DEBUG_ARUCO:
+                    # print("\n")
+                    # print(prev)
+                    if abs(rotZ) > 5:
+                        # tell("Rotate Left") if rotZ < 0 else tell("Rotate Right")
+                        print("Rotate Left") if rotZ < 0 else print("Rotate Right")
+                    elif abs(cx) > 20 or abs(cy) > 20:
+                        if abs(cx) > 20:
+                            # tell("Left") if cx > 0 else tell("Right")
+                            print("Left") if cx > 0 else print("Right")
 
-                #     if abs(cy) > 20:
-                #         # tell("Back") if cy > 0 else tell("Front")
-                #         print("Back") if cy > 0 else print("Front")
-                # elif not dic == None:
-                #     # tell("Up")
-                #     print("Up")
-                # else:
-                #     # tell("Hold")
-                #     print("Hold")
+                        if abs(cy) > 20:
+                            # tell("Back") if cy > 0 else tell("Front")
+                            print("Back") if cy > 0 else print("Front")
+                    elif not dic == None:
+                        # tell("Up")
+                        print("Up")
+                    else:
+                        # tell("Hold")
+                        print("Hold")
 
                 if DEBUG_WEB or DEBUG_ARUCO:
                     key = cv2.waitKey(5)
